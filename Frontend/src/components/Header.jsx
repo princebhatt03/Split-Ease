@@ -1,61 +1,48 @@
 import { useState, useEffect } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
 import logo from '../assets/images/logo.png';
+import { motion } from 'framer-motion';
 
 const Header = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [admin, setAdmin] = useState(null);
   const navigate = useNavigate();
 
-  const toggleMenu = () => {
-    setMenuOpen(!menuOpen);
-  };
+  const toggleMenu = () => setMenuOpen(prev => !prev);
 
   const handleLogout = () => {
-    if (user) {
-      localStorage.removeItem('userToken');
-      localStorage.removeItem('userInfo');
-      setUser(null);
-      navigate('/userLogin');
-    } else if (admin) {
-      localStorage.removeItem('adminToken');
-      localStorage.removeItem('adminInfo');
-      setAdmin(null);
-      navigate('/adminLogin');
-    }
+    localStorage.removeItem('userToken');
+    localStorage.removeItem('userInfo');
+    setUser(null);
+    navigate('/userLogin');
   };
 
   useEffect(() => {
-    const syncAuthData = () => {
+    const fetchUser = () => {
       try {
         const storedUser = JSON.parse(localStorage.getItem('userInfo'));
-        const storedAdmin = JSON.parse(localStorage.getItem('adminInfo'));
         setUser(storedUser || null);
-        setAdmin(storedAdmin || null);
       } catch {
         setUser(null);
-        setAdmin(null);
       }
     };
 
-    syncAuthData();
-    window.addEventListener('storage', syncAuthData);
-    return () => window.removeEventListener('storage', syncAuthData);
+    fetchUser();
+    window.addEventListener('storage', fetchUser);
+    return () => window.removeEventListener('storage', fetchUser);
   }, []);
 
   const navLinks = [
-    { label: 'Home', path: '/' },
-    { label: 'Shop', path: '/shop' },
-    { label: 'Categories', path: '/categories' },
-    { label: 'Cart', path: '/cart' },
+    { label: 'Dashboard', path: '/' },
+    { label: 'Expenses', path: '/expenses' },
+    { label: 'Settlements', path: '/settlements' },
+    { label: 'Users', path: '/users' },
   ];
 
-  const isLoggedIn = !!user || !!admin;
-  const displayName = user?.username || admin?.adminUsername;
-  const profileLink = user ? '/userProfile' : admin ? '/adminProfile' : '#';
+  const isLoggedIn = !!user;
+  const displayName = user?.username;
+  const profileLink = '/userProfile';
 
   return (
     <header className="bg-white shadow-md w-full fixed top-0 left-0 z-50">
@@ -67,31 +54,26 @@ const Header = () => {
           <img
             src={logo}
             alt="Logo"
-            className="h-12 w-auto"
+            className="h-54 w-auto"
           />
-          <span className="ml-2 text-xl font-bold text-orange-500 hidden sm:inline">
-            UrbanKart
-          </span>
         </Link>
 
-        {/* Mobile Menu Button */}
-        <div className="md:hidden">
-          <button
-            onClick={toggleMenu}
-            className="text-gray-700 focus:outline-none">
-            {menuOpen ? <X size={24} /> : <Menu size={24} />}
-          </button>
-        </div>
+        {/* Menu Icon (Mobile) */}
+        <button
+          onClick={toggleMenu}
+          className="md:hidden text-gray-700">
+          {menuOpen ? <X size={24} /> : <Menu size={24} />}
+        </button>
 
         {/* Desktop Nav */}
-        <nav className="hidden md:flex space-x-6 items-center">
+        <nav className="hidden md:flex items-center space-x-6">
           {navLinks.map(link => (
             <NavLink
               key={link.path}
               to={link.path}
               className={({ isActive }) =>
-                `text-gray-700 hover:text-orange-500 transition duration-200 ${
-                  isActive ? 'font-semibold text-orange-500' : ''
+                `text-gray-700 hover:text-blue-600 transition font-medium ${
+                  isActive ? 'text-blue-600 font-semibold' : ''
                 }`
               }>
               {link.label}
@@ -102,23 +84,23 @@ const Header = () => {
             <>
               <NavLink
                 to="/userLogin"
-                className="text-gray-700 hover:text-blue-600 transition font-medium">
+                className="text-gray-700 hover:text-green-600 transition font-medium">
                 Login
               </NavLink>
               <NavLink
                 to="/userRegister"
-                className="text-gray-700 hover:text-green-600 transition font-medium">
-                Create Account
+                className="text-gray-700 hover:text-purple-600 transition font-medium">
+                Sign Up
               </NavLink>
             </>
           ) : (
             <div className="flex items-center space-x-4">
-              <span className="text-sm font-medium text-gray-600">
-                Hello, <strong>{displayName}</strong>
+              <span className="text-sm text-gray-600">
+                Hi, <strong>{displayName}</strong>
               </span>
               <NavLink
                 to={profileLink}
-                className="text-gray-700 hover:text-purple-600 transition font-medium">
+                className="text-gray-700 hover:text-indigo-600 font-medium">
                 Profile
               </NavLink>
               <button
@@ -145,8 +127,8 @@ const Header = () => {
                 to={link.path}
                 onClick={() => setMenuOpen(false)}
                 className={({ isActive }) =>
-                  `block text-gray-700 hover:text-orange-500 transition-colors duration-200 ${
-                    isActive ? 'font-semibold text-orange-500' : ''
+                  `text-gray-700 hover:text-blue-600 transition font-medium ${
+                    isActive ? 'text-blue-600 font-semibold' : ''
                   }`
                 }>
                 {link.label}
@@ -158,25 +140,25 @@ const Header = () => {
                 <NavLink
                   to="/userLogin"
                   onClick={() => setMenuOpen(false)}
-                  className="block text-gray-700 hover:text-blue-600 font-medium">
+                  className="text-gray-700 hover:text-green-600 font-medium">
                   Login
                 </NavLink>
                 <NavLink
                   to="/userRegister"
                   onClick={() => setMenuOpen(false)}
-                  className="block text-gray-700 hover:text-green-600 font-medium">
-                  Create Account
+                  className="text-gray-700 hover:text-purple-600 font-medium">
+                  Sign Up
                 </NavLink>
               </>
             ) : (
               <>
-                <span className="text-sm font-medium text-gray-600">
-                  Hello, <strong>{displayName}</strong>
+                <span className="text-sm text-gray-600">
+                  Hi, <strong>{displayName}</strong>
                 </span>
                 <NavLink
                   to={profileLink}
                   onClick={() => setMenuOpen(false)}
-                  className="block text-gray-700 hover:text-purple-600 font-medium">
+                  className="text-gray-700 hover:text-indigo-600 font-medium">
                   Profile
                 </NavLink>
                 <button

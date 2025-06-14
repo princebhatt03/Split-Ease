@@ -5,22 +5,21 @@ import {
   FaInstagram,
   FaLinkedinIn,
 } from 'react-icons/fa';
-import logo from '../assets/images/logo.png';
+import logo from '../assets/images/logoD.png';
 
 const Footer = () => {
   return (
-    <footer className="bg-gray-900 text-white bottom-0 absolute w-full px-6 py-10 mt-10">
-      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8 animate-fadeInUp">
+    <footer className="bg-gray-900 bottom-0 absolute w-full text-white px-6 py-10 mt-16">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
         {/* Logo & Description */}
-        <div className="flex flex-col items-center md:items-start">
+        <div className="flex flex-col items-center md:items-start text-center md:text-left">
           <img
             src={logo}
-            alt="UrbanKart Logo"
-            className="h-22 mb-4"
+            alt="SplitEase Logo"
+            className="h-48 mb-0"
           />
           <p className="text-gray-400">
-            Your one-stop shop for trendy, affordable shopping. Click. Cart.
-            Conquer.
+            Simplify your shared expenses. Track, split, and settle with ease.
           </p>
         </div>
 
@@ -28,18 +27,15 @@ const Footer = () => {
         <div>
           <h3 className="text-xl font-semibold mb-3">Quick Links</h3>
           <ul className="space-y-2 text-gray-400">
-            <li className="hover:text-white transition duration-300 cursor-pointer">
-              Home
-            </li>
-            <li className="hover:text-white transition duration-300 cursor-pointer">
-              Shop
-            </li>
-            <li className="hover:text-white transition duration-300 cursor-pointer">
-              About Us
-            </li>
-            <li className="hover:text-white transition duration-300 cursor-pointer">
-              Contact
-            </li>
+            {['Dashboard', 'Expenses', 'Users', 'Settlements'].map(
+              (link, idx) => (
+                <li
+                  key={idx}
+                  className="hover:text-white transition duration-300 cursor-pointer">
+                  {link}
+                </li>
+              )
+            )}
           </ul>
         </div>
 
@@ -63,8 +59,8 @@ const Footer = () => {
 
       {/* Bottom Text */}
       <div className="text-center text-gray-500 text-sm mt-10 border-t border-gray-700 pt-4">
-        &copy; {new Date().getFullYear()} UrbanKart. All rights reserved.
-        Developed by Prince Bhatt
+        &copy; {new Date().getFullYear()} SplitEase. All rights reserved. <br />
+        Developed with ❤️ by Prince Bhatt
       </div>
     </footer>
   );

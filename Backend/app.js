@@ -7,7 +7,6 @@ const MongoStore = require('connect-mongo');
 const flash = require('express-flash');
 const connectToDb = require('./db/db');
 const userRoutes = require('./routes/user.routes');
-const adminRoutes = require('./routes/admin.routes');
 
 connectToDb();
 
@@ -59,7 +58,6 @@ app.get('/', (req, res) => {
 });
 
 // ✅ 6. API Routes
-app.use('/api/user', userRoutes); 
-app.use('/api/admin', adminRoutes); 
+app.use('/api/user', userRoutes);
 
 module.exports = app;

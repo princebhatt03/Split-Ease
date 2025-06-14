@@ -179,15 +179,6 @@ const UserRegister = () => {
             className="w-full bg-indigo-300 hover:bg-indigo-500 text-white py-3 rounded-xl font-semibold shadow-lg transition duration-300">
             Go Back to Home
           </motion.button>
-
-          {/* ✅ NEW BUTTON for Admin Registration */}
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={() => navigate('/adminRegister')}
-            className="w-full bg-red-400 hover:bg-red-500 text-white py-3 rounded-xl font-semibold shadow-lg transition duration-300">
-            Register as Admin
-          </motion.button>
         </form>
 
         <div className="mt-6 flex flex-col items-center">

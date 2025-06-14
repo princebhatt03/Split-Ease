@@ -8,12 +8,6 @@ import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './ProtectedRoute';
 import UserProfileUpdate from './pages/user/UserProfileUpdate';
 import UserDelete from './pages/user/UserDelete';
-import AdminDelete from './pages/admin/AdminDelete';
-import AdminProfileUpdate from './pages/admin/AdminProfileUpdate';
-import AdminRegister from './pages/admin/AdminRegister';
-import AdminLogin from './pages/admin/AdminLogin';
-import AdminHome from './pages/admin/AdminHome';
-import AdminProtectedRoute from './AdminProtectedRoutes';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -61,39 +55,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
-      <Route
-        path="/adminHome"
-        element={<AdminHome />}
-      />
-      <Route
-        path="/adminLogin"
-        element={<AdminLogin />}
-      />
-
-      <Route
-        path="/adminRegister"
-        element={<AdminRegister />}
-      />
-
-      <Route
-        path="/adminProfile"
-        element={
-          <AdminProtectedRoute>
-            <AdminProfileUpdate />
-          </AdminProtectedRoute>
-        }
-      />
-
-      <Route
-        path="/adminDelete"
-        element={
-          <AdminProtectedRoute>
-            <AdminDelete />
-          </AdminProtectedRoute>
-        }
-      />
-
       {/* Catch-All for Unknown Routes */}
       <Route
         path="*"
