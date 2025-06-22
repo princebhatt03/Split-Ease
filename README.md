@@ -94,16 +94,17 @@
 
 ### 🔒 Backend: `backend/.env`
 ```env
-PORT=5000
-MONGO_URI=your_mongodb_connection_string
+PORT=3000
+DB_CONNECT=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
+JWT_TIMEOUT=1d
+FRONTEND_URL=your_frontend_URL
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
-BASE_URL=http://localhost:5000
 ```
 🎯 Frontend: frontend/.env
 ```
-VITE_BACKEND_URL=http://localhost:5000/api
+VITE_BACKEND_URL=http://localhost:3000
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
 ```
 🚀 Project Setup
