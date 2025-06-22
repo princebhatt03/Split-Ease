@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import defaultAvatar from '../../assets/images/prof.webp';
 
 const UserProfileUpdate = () => {
   const navigate = useNavigate();
@@ -10,22 +11,41 @@ const UserProfileUpdate = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [previewImage, setPreviewImage] = useState(null);
+  const [profileImageFile, setProfileImageFile] = useState(null);
+  const [isGoogleUser, setIsGoogleUser] = useState(false);
 
-  // Load user from localStorage
+  const backendURL =
+    import.meta.env.VITE_BACKEND_URL || 'http://localhost:3000';
+
   useEffect(() => {
     const userData = localStorage.getItem('userInfo');
     if (userData) {
       const parsedUser = JSON.parse(userData);
       setUser(parsedUser);
+
+      const googleUser = parsedUser.password?.includes('_GoogleAuth');
+      setIsGoogleUser(googleUser);
+
       setFormData({
-        fullName: parsedUser.fullName || '',
+        fullName: parsedUser.fullName || parsedUser.name || '',
         username: parsedUser.username || '',
         email: parsedUser.email || '',
         mobile: parsedUser.mobile || '',
-        password: '',
+        password: parsedUser.password || '',
         newPassword: '',
         confirmNewPassword: '',
+        profileImage: parsedUser.profileImage || parsedUser.image || '',
       });
+
+      let imageURL = defaultAvatar;
+      if (parsedUser.profileImage?.startsWith('/uploads/')) {
+        imageURL = `${backendURL}${parsedUser.profileImage}`;
+      } else if (parsedUser.profileImage || parsedUser.image) {
+        imageURL = parsedUser.profileImage || parsedUser.image;
+      }
+
+      setPreviewImage(imageURL);
     } else {
       navigate('/userLogin');
     }
@@ -35,9 +55,18 @@ const UserProfileUpdate = () => {
     setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
+  const handleImageChange = e => {
+    const file = e.target.files[0];
+    if (file) {
+      setProfileImageFile(file);
+      setPreviewImage(URL.createObjectURL(file));
+    }
+  };
+
   const openPasswordModal = e => {
     e.preventDefault();
     setErrorMsg('');
+
     if (
       formData.newPassword &&
       formData.newPassword !== formData.confirmNewPassword
@@ -45,10 +74,15 @@ const UserProfileUpdate = () => {
       setErrorMsg('New passwords do not match!');
       return;
     }
-    setShowPasswordModal(true);
+
+    if (isGoogleUser) {
+      handleUpdate(true);
+    } else {
+      setShowPasswordModal(true);
+    }
   };
 
-  const handleUpdate = async () => {
+  const handleUpdate = async (skipPassword = false) => {
     setErrorMsg('');
     setSuccessMsg('');
 
@@ -57,45 +91,45 @@ const UserProfileUpdate = () => {
       return;
     }
 
-    if (!currentPassword) {
-      setErrorMsg('Please enter your current password to confirm.');
-      return;
+    const payload = new FormData();
+
+    if (!skipPassword) {
+      if (!currentPassword) {
+        setErrorMsg('Please enter your current password to confirm.');
+        return;
+      }
+      payload.append('currentPassword', currentPassword);
+    } else {
+      payload.append('currentPassword', 'dummy_GoogleAuth');
     }
 
-    const payload = {
-      currentPassword,
-      updates: {},
-    };
-
-    if (formData.fullName !== user.fullName)
-      payload.updates.fullName = formData.fullName;
-    if (formData.username !== user.username)
-      payload.updates.username = formData.username;
-    if (formData.email !== user.email) payload.updates.email = formData.email;
-    if (formData.mobile !== user.mobile)
-      payload.updates.mobile = formData.mobile;
-    if (formData.newPassword) payload.updates.password = formData.newPassword;
-
-    if (Object.keys(payload.updates).length === 0) {
-      setErrorMsg('No changes to update.');
-      return;
+    if (formData.fullName !== (user.fullName || user.name)) {
+      payload.append('fullName', formData.fullName);
+    }
+    if (formData.username !== user.username) {
+      payload.append('username', formData.username);
+    }
+    if (formData.email !== user.email) {
+      payload.append('email', formData.email);
+    }
+    if (formData.mobile !== user.mobile) {
+      payload.append('mobile', formData.mobile);
+    }
+    if (formData.newPassword) {
+      payload.append('password', formData.newPassword);
+    }
+    if (profileImageFile) {
+      payload.append('profileImage', profileImageFile);
     }
 
     try {
-      const response = await fetch(
-        `${
-          import.meta.env.VITE_BACKEND_URL ||
-          import.meta.env.VITE_LOCAL_BACKEND_URL
-        }/api/user/updateUserProfile`,
-        {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${localStorage.getItem('userToken')}`,
-          },
-          body: JSON.stringify(payload),
-        }
-      );
+      const response = await fetch(`${backendURL}/api/user/updateUserProfile`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('userToken')}`,
+        },
+        body: payload,
+      });
 
       const data = await response.json();
 
@@ -105,21 +139,27 @@ const UserProfileUpdate = () => {
           localStorage.setItem('userToken', data.token);
         }
 
-        setUser(data.user);
-        setFormData({
-          ...formData,
-          fullName: data.user.fullName,
-        });
+        const updatedImageURL = data.user.profileImage?.startsWith('/uploads/')
+          ? `${backendURL}${data.user.profileImage}`
+          : data.user.image || defaultAvatar;
 
-        setSuccessMsg('Profile updated successfully!');
+        setUser(data.user);
+        setFormData(prev => ({
+          ...prev,
+          profileImage: data.user.profileImage || data.user.image,
+          newPassword: '',
+          confirmNewPassword: '',
+        }));
+        setPreviewImage(updatedImageURL);
+        setSuccessMsg('✅ Profile updated successfully!');
         setShowPasswordModal(false);
         setCurrentPassword('');
       } else {
-        setErrorMsg(data.message || 'Failed to update profile.');
+        setErrorMsg(data.message || '❌ Failed to update profile.');
       }
     } catch (error) {
       console.error('Update Error:', error);
-      setErrorMsg('Server error! Please try again later.');
+      setErrorMsg('❌ Server error! Please try again later.');
     }
   };
 
@@ -152,8 +192,22 @@ const UserProfileUpdate = () => {
         )}
 
         <form
-          className="space-y-5"
-          onSubmit={openPasswordModal}>
+          onSubmit={openPasswordModal}
+          className="space-y-5">
+          <div className="text-center">
+            <img
+              src={previewImage}
+              alt="Profile"
+              className="w-24 h-24 rounded-full mx-auto mb-2 object-cover border-2 border-indigo-400"
+            />
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100"
+            />
+          </div>
+
           <input
             type="text"
             name="fullName"
@@ -197,7 +251,7 @@ const UserProfileUpdate = () => {
           <input
             type="password"
             name="newPassword"
-            placeholder="New Password (leave blank if no change)"
+            placeholder="New Password (optional)"
             value={formData.newPassword}
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
@@ -211,6 +265,12 @@ const UserProfileUpdate = () => {
             onChange={handleChange}
             className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400"
           />
+
+          {isGoogleUser && (
+            <p className="text-sm text-indigo-500 text-center -mt-3">
+              You logged in with Google. Please Create a Password
+            </p>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 justify-between items-center mt-4">
             <button
@@ -235,7 +295,7 @@ const UserProfileUpdate = () => {
           </div>
         </form>
 
-        {showPasswordModal && (
+        {!isGoogleUser && showPasswordModal && (
           <div className="fixed inset-0 bg-transparent backdrop-blur flex items-center justify-center z-50">
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}
@@ -269,7 +329,7 @@ const UserProfileUpdate = () => {
                   Cancel
                 </button>
                 <button
-                  onClick={handleUpdate}
+                  onClick={() => handleUpdate(false)}
                   className="w-full sm:w-auto px-5 py-2 rounded-xl bg-indigo-600 text-white hover:bg-indigo-700 transition">
                   Confirm & Update
                 </button>

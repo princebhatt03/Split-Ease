@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route } from 'react-router-dom';
-
 import FrontPage from './pages/FrontPage';
 import UserRegister from './pages/user/UserRegister';
 import UserLogin from './pages/user/UserLogin';
@@ -8,11 +7,28 @@ import ErrorPage from './pages/ErrorPage';
 import ProtectedRoute from './ProtectedRoute';
 import UserProfileUpdate from './pages/user/UserProfileUpdate';
 import UserDelete from './pages/user/UserDelete';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 
 function App() {
-  const [user, setUser] = useState(null);
+  const GoogleAuthWrapper = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    return (
+      <GoogleOAuthProvider clientId={clientId}>
+        <UserLogin onLogin={setUser} />
+      </GoogleOAuthProvider>
+    );
+  };
 
-  // Load user data on initial mount
+  const GoogleAuthWrapper1 = () => {
+    const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+    return (
+      <GoogleOAuthProvider clientId={clientId}>
+        <UserRegister />
+      </GoogleOAuthProvider>
+    );
+  };
+
+  const [user, setUser] = useState(null);
   useEffect(() => {
     const info = localStorage.getItem('userInfo');
     if (info) setUser(JSON.parse(info));
@@ -20,23 +36,18 @@ function App() {
 
   return (
     <Routes>
-      {/* Protected Home Page */}
       <Route
         path="/"
         element={<FrontPage />}
       />
-
-      {/* Public Routes */}
       <Route
         path="/userRegister"
-        element={<UserRegister />}
+        element={<GoogleAuthWrapper1 />}
       />
       <Route
         path="/userLogin"
-        element={<UserLogin onLogin={setUser} />}
+        element={<GoogleAuthWrapper />}
       />
-
-      {/* Protected User Profile Update */}
       <Route
         path="/userProfile"
         element={
@@ -45,8 +56,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-
-      {/* Protected User Deletion */}
       <Route
         path="/userDelete"
         element={
@@ -55,7 +64,6 @@ function App() {
           </ProtectedRoute>
         }
       />
-      {/* Catch-All for Unknown Routes */}
       <Route
         path="*"
         element={<ErrorPage />}

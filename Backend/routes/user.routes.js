@@ -2,43 +2,32 @@ const express = require('express');
 const router = express.Router();
 const userController = require('../controllers/user.controller')();
 const isUserLoggedIn = require('../middlewares/user');
+const upload = require('../middlewares/upload');
 
-// Home route
+// --------------------------- Test Route ---------------------------
 router.get('/', (req, res) => {
-  res.render('index');
-  console.log('Index page accessed');
+  res.send('✅ User API Working');
 });
 
-// ******** USER POST ROUTES ********
-
-// User Registration Route (public)
-router.post('/register', userController.registerUser);
-
-// User Login Route (public)
-router.post('/login', userController.loginUser);
-
-// User Update Route (protected, update by id param)
-router.patch('/update/:id', isUserLoggedIn, userController.updateUserProfile);
-
-// New protected route to update profile using token user ID
-router.put(
-  '/updateUserProfile',
-  userController.authenticateToken,
-  async (req, res, next) => {
-    try {
-      const userId = req.user.id;
-      if (!userId) {
-        return res.status(400).json({ message: 'User ID missing from token' });
-      }
-      req.params.id = userId;
-      await userController.updateUserProfile(req, res);
-    } catch (err) {
-      next(err);
-    }
-  }
+// --------------------------- Registration ---------------------------
+router.post(
+  '/register',
+  upload.single('profileImage'), // Optional image upload
+  userController.registerUser
 );
 
-// User Delete Route (protected)
+// --------------------------- Login ---------------------------
+router.post('/login', userController.loginUser);
+
+// --------------------------- Update Profile ---------------------------
+router.put(
+  '/updateUserProfile',
+  isUserLoggedIn,
+  upload.single('profileImage'),
+  userController.updateUserProfile
+);
+
+// --------------------------- Delete User ---------------------------
 router.delete('/delete/:id', isUserLoggedIn, userController.deleteUser);
 
 module.exports = router;
