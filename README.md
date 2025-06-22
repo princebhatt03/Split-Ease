@@ -102,7 +102,7 @@ FRONTEND_URL=your_frontend_URL
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 ```
-🎯 Frontend: frontend/.env
+### 🎯 Frontend: `frontend/.env`
 ```
 VITE_BACKEND_URL=http://localhost:3000
 VITE_GOOGLE_CLIENT_ID=your_google_client_id
